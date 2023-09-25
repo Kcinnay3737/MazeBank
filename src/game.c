@@ -8,6 +8,7 @@
 static size_t factor = 60;
 static Vector2 player_pos = {0};
 static Vector2 end_pos = {.x=4,.y=6};
+static float last_distance = 0.0f;
 
 #define REWARD_CLOSE +10
 #define REWARD_FAR -10
@@ -46,7 +47,12 @@ void game_draw(void){
  * @brief Restart game.
  *
  */
-void game_restart(void);
+void game_restart(void)
+{
+    player_pos.x = 0;
+    player_pos.y = 0;
+    last_distance = Vector2Distance(player_pos, end_pos);
+}
 
 /**
  * @brief Move snake.
@@ -82,14 +88,15 @@ void game_apply_move( uint8_t move){
  * @return true
  * @return false
  */
-bool game_is_ended(void){
-    int check1 =player_pos.x == end_pos.x;
-    int check2 =player_pos.y == end_pos.y; 
+bool game_is_ended(void)
+{
+    int check1 = player_pos.x == end_pos.x;
+    int check2 = player_pos.y == end_pos.y;
     int check3 = player_pos.x * gridsize > NUM_GRID_SQUARES * gridsize;
-    int check4 = player_pos.y *gridsize > NUM_GRID_SQUARES * gridsize;
-    int check5 = player_pos.x *gridsize < 0;
-    int check6 = player_pos.y *gridsize < 0;
-    return (check1 && check2) || check3 || check4 || check5 || check6; 
+    int check4 = player_pos.y * gridsize > NUM_GRID_SQUARES * gridsize;
+    int check5 = player_pos.x * gridsize < 0;
+    int check6 = player_pos.y * gridsize < 0;
+    return (check1 && check2) || check3 || check4 || check5 || check6;
 }
 
 /**
@@ -113,4 +120,24 @@ uint16_t game_get_state(void)
  *
  * @return int16_t
  */
-int16_t game_get_reward(void);
+int16_t game_get_reward(void)
+{
+    float CurrentDistance = Vector2Distance(player_pos, end_pos);
+    
+    if(CurrentDistance < last_distance)
+    {
+        last_distance = CurrentDistance;
+        return REWARD_CLOSE;
+    }
+    else if(CurrentDistance > last_distance)
+    {
+        last_distance = CurrentDistance;
+        return REWARD_FAR;
+    }
+    else if(CurrentDistance == last_distance)
+    {
+        return 0;
+    }
+
+    return 0;
+}
